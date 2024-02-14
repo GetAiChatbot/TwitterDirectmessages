@@ -130,33 +130,39 @@ app.get('/auth/twitter/callback',
   });
 
 
-// Route to retrieve direct messages for the authenticated user
+// Route to retrieve direct messages for the authenticated user from 1st Feb 2024
 app.get('/get-messages', isAuthenticated, async (req, res) => {
-    try {
+  try {
       // Use the authenticated user's access token and access token secret
       const userAccessToken = req.user.token;
       const userAccessTokenSecret = req.user.tokenSecret;
-  
+
       // Create a new Twit instance with the authenticated user's credentials
       const userT = new Twit({
-        consumer_key: 'Oloi0EFj5MF92bChBGtL1cJnl',
-        consumer_secret: 'Dm2sirtmJxtqUr82SvHjX8dVT8BsAYnnE9tfRdPLVFiaP3jPJj',
-        access_token: userAccessToken,
-        access_token_secret: userAccessTokenSecret,
+          consumer_key: 'Oloi0EFj5MF92bChBGtL1cJnl',
+          consumer_secret: 'Dm2sirtmJxtqUr82SvHjX8dVT8BsAYnnE9tfRdPLVFiaP3jPJj',
+          access_token: userAccessToken,
+          access_token_secret: userAccessTokenSecret,
       });
-  
-      
+
       const directMessages = await userT.get('direct_messages/events/list');
-  
+
+      // Filter messages created after February 1, 2024
+      const feb1Timestamp = new Date('2024-02-01').getTime();
+      const filteredMessages = directMessages.data.events.filter((event) => {
+          const createdTimestamp = parseInt(event.created_timestamp);
+          return createdTimestamp >= feb1Timestamp;
+      });
+
       // Log the direct messages
-      console.log('Direct Messages:', directMessages.data);
-  
-      // Send the direct messages as a response
-      res.json(directMessages.data);
-    } catch (error) {
+      console.log('Direct Messages from 1st Feb 2024:', filteredMessages);
+
+      // Send the filtered direct messages as a response
+      res.json(filteredMessages);
+  } catch (error) {
       console.error('Error fetching direct messages:', error);
       res.status(500).send('Error fetching direct messages');
-    }
+  }
 });
  
 
